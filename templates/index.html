@@ -8,7 +8,7 @@
     />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>ACADEMIC EXAM AUTOMATION SYSTEM</title>
+    <title>BIOMASS CALCULATOR</title>
     <!-- Favicon-->
     <link
       rel="icon"
@@ -36,64 +36,31 @@
         >
           <a id="homeBtn" href="#!">
             <img
-              src="{{ url_for('static', filename='images/AEAS.ico') }}"
+              src="{{ url_for('static', filename='images/Logo.svg.png') }}"
               alt="Icon description"
               style="height: 100px; width: 100px; display: block; margin: auto"
             />
           </a>
-          AEAS
         </div>
         <div class="list-group list-group-flush">
           <a
             class="list-group-item list-group-item-action list-group-item-light p-3"
-            id="profileBtn"
+            id="uploadBtn"
             href="#!"
-            >Profile</a
+            >Upload Biomass Data</a
           >
           <a
             class="list-group-item list-group-item-action list-group-item-light p-3"
-            id="dashboardBtn"
+            id="seeDataBtn"
             href="#!"
-            >Dashboard</a
+            >Analyze Biomass Data</a
           >
           <a
             class="list-group-item list-group-item-action list-group-item-light p-3"
+            id="uploadBtn"
             href="#!"
-            >Events</a
+            >AI Analysis</a
           >
-          <!-- Mails button -->
-          <button
-            class="list-group-item list-group-item-action list-group-item-light p-3 d-flex justify-content-between align-items-center"
-            data-bs-toggle="collapse"
-            data-bs-target="#mailsCollapse"
-            aria-expanded="false"
-            aria-controls="mailsCollapse"
-          >
-            Mails
-            <i class="fas fa-chevron-down"></i>
-          </button>
-
-          <!-- Mail sections (hidden by default) -->
-          <div class="collapse" id="mailsCollapse">
-            <a
-              id="sentEmailsBtn"
-              href="#"
-              class="list-group-item list-group-item-action list-group-item-light p-3 ps-5"
-              >Sent Emails</a
-            >
-            <a
-              id="receivedEmailsBtn"
-              href="#"
-              class="list-group-item list-group-item-action list-group-item-light p-3 ps-5"
-              >Received Emails</a
-            >
-            <a
-              id="sendEmailBtn"
-              href="#"
-              class="list-group-item list-group-item-action list-group-item-light p-3 ps-5"
-              >Send Email</a
-            >
-          </div>
         </div>
       </div>
       <!-- Page content wrapper-->
@@ -127,15 +94,6 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
               <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
-                <li class="nav-item">
-                  <a class="nav-link" href="#!">
-                    <img
-                      src="{{ url_for('static', filename='images/mail.png') }}"
-                      alt="Image description"
-                      style="height: 20px; width: 20px"
-                    />
-                  </a>
-                </li>
                 <li class="nav-item active">
                   <a class="nav-link" id="homeBtn2" href="#!">Home</a>
                 </li>
@@ -168,233 +126,95 @@
         <!-- Page content-->
         <div class="container-fluid" id="pageContent">
           <div id="homeContent" style="display: none">
-            <h1 class="mt-4">ACADEMIC EXAM AUTOMATION SYSTEM</h1>
-            <p>Exam Automation for Universities</p>
-            <div id="homeContent" class="row">
-              <!-- Card 1 -->
-              <div class="col-lg-4 col-md-6 col-sm-12">
-                <div class="card">
-                  <div class="card-preview">
-                    <div class="fuse-card">
-                      <div class="p-16">
-                        <div class="h1">Question Preparation Module</div>
-                        <div class="h4 secondary-text">
-                          Prepare simple, related, integrated questions
-                        </div>
-                      </div>
-                      <img
-                        src="{{ url_for('static', filename='images/card1.png') }}"
-                        class="card-img"
-                      />
-                      <div
-                        class="p-16 pt-0 line-height-1.75"
-                        style="padding: 5px"
-                      >
-                        Contains guiding elements that will contribute to the
-                        question preparation process for users with question
-                        preparation authority (faculty members, instructors,
-                        lecturers, etc.). This module allows for 3 different
-                        types of questions
-                        <b>(simple, related, and integrated)</b> and can host an
-                        unlimited number of questions. The questions stored by
-                        the module are encrypted and stored in the database with
-                        an ID. When needed, a stored question can be easily
-                        accessed using a keyword.
-                        <p><b>Main features of the questions:</b></p>
-                        <ul>
-                          <li>
-                            Cognitive level, difficulty level, acceptability
-                            index, cumulative difficulty index, validity dates,
-                            relation to learning objectives, peer review
-                          </li>
-                        </ul>
-                        Questions go through peer review by an authorized and
-                        appointed person/board. Questions that pass the
-                        technical inspection and are approved can appear in
-                        exams. If problems are detected during the inspection,
-                        an email will be sent to the user who prepared the
-                        question, explaining the problem and suggesting
-                        solutions.
-                        <p>
-                          In addition to these features, ASOS is fully
-                          compatible with the <b>Core Education Program</b> and
-                          the
-                          <b
-                            >Turkish Higher Education Qualifications
-                            Framework</b
-                          >. Questions can be matched with learning objectives,
-                          core diseases, etc.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Card 2 -->
-              <div class="col-lg-4 col-md-6 col-sm-12">
-                <div class="card">
-                  <div class="card-preview">
-                    <div class="fuse-card">
-                      <div class="p-16" style="padding: 5px">
-                        <div class="h1">Exam Question Planning Module</div>
-                        <div class="h4 secondary-text">
-                          Create exams based on various parameters
-                        </div>
-                      </div>
-                      <img
-                        src="{{ url_for('static', filename='images/card2.png') }}"
-                        class="card-img"
-                      />
-                      <div
-                        class="p-16 pt-0 line-height-1.75"
-                        style="padding: 5px"
-                      >
-                        In the exam automation system, the authority to create
-                        exams is given only to exam creation officers (semester
-                        coordinators, exam coordinators, course board
-                        chairpersons, exam staff, etc.) designated by the
-                        administration. These officers begin preliminary
-                        preparations related to the exams to be conducted by
-                        creating plans for
-                        <ul>
-                          <li>Course,</li>
-                          <li>Course board</li>
-                        </ul>
-                        exams in accordance with the upcoming exam schedule.
-                        <p>
-                          Notification emails are sent to faculty members and
-                          question control officers through the system for any
-                          deficiencies.
-                        </p>
-                        During the exam preparation phase, questions are
-                        automatically selected by the system through various
-                        algorithms. Questions are filtered according to various
-                        parameters (class hours, learning objectives, credits,
-                        difficulty level, acceptability index, favorite
-                        questions, or keywords). The selected questions are
-                        added to the list as a result of filtering. The
-                        selection of questions continues until the total number
-                        of exam questions is reached. After the system makes the
-                        question selection, an informational email is sent to
-                        the relevant faculty members about the questions that
-                        will appear in the exam.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Card 3 -->
-              <div class="col-lg-4 col-md-6 col-sm-12">
-                <div class="card">
-                  <div class="card-preview">
-                    <div class="fuse-card">
-                      <div class="p-16" style="padding: 5px">
-                        <div class="h1">Exam Module</div>
-                        <div class="h4 secondary-text">
-                          Conduct traditional, electronic, or
-                          <b>fully secure remote</b> exams
-                        </div>
-                      </div>
-                      <img
-                        src="{{ url_for('static', filename='images/card3.png') }}"
-                        alt="Card 3 Image"
-                        class="card-img"
-                      />
-                      <div
-                        class="p-16 pt-0 line-height-1.75"
-                        style="padding: 5px"
-                      >
-                        The first process in the exam module is the preparation
-                        of exam booklets. After reaching the planned number of
-                        questions for the exam, the selected questions are
-                        reviewed by the exam staff. Once the questions to be
-                        included in the exam are approved, the preparation
-                        process for the booklet (printed or electronic) begins.
-                        An unlimited number of booklets of the desired variety
-                        can be created. Exams can be conducted with these
-                        booklets in multiple sessions and different branches.
-                        Answer keys for each question booklet are prepared by
-                        the system. Based on these prepared booklets, 5
-                        different types of exams can be conducted:
-                        <ul>
-                          <li>Midterm/Quizzes,</li>
-                          <li>Final,</li>
-                          <li>Make-up,</li>
-                          <li>Readiness,</li>
-                          <li>Development</li>
-                        </ul>
-                        The positions of the questions and options in each
-                        booklet can be automatically randomized by the system.
-                        It offers options to conduct traditional (printed exam
-                        booklets), electronic (in computer labs or exam
-                        centers), or <b>fully secure</b> remote (electronic)
-                        exams.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <h1 class="mt-4">BIOMASS CALCULATOR</h1>
+            <p>
+              Please upload your csv files from "Upload Biomass Data" and you
+              can see it on "Inspect Biomass Data"
+            </p>
+            <p>
+              Please double-check that your csv file doesn't contain
+              non-relevant data
+            </p>
+            <form action="{{ url_for('delete_all') }}" method="post">
+              <input type="submit" value="Delete All CSV Data" />
+            </form>
           </div>
 
-          <div id="profileContent" style="display: none">
-            <h1 class="mt-4">Profile</h1>
-            <p>Welcome to your profile.</p>
-          </div>
-
-          <div id="sentEmailsContent" style="display: none">
+          <div id="seeDataContent" style="display: none">
             <div class="container">
-                <h1 class="mt-4 text-center">Sent Emails</h1>
-                <p class="text-center">Here you can see your sent emails</p>
-                <table class="table table-striped mx-auto">
-                    <thead>
-                        <tr>
-                            <th scope="col">Table</th>
-                            <th scope="col">Descriptive Data</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                      {% for email in emails|reverse %}
-                      <tr>
-                          <td>
-                              {% if email.filename %}
-                                  {% if email.filename.endswith('.csv') %}
-                                      <div class="scrollable-box">
-                                          <table class="table table-sm">
-                                              <thead>
-                                                  {% if email.csv_data %}
-                                                      <tr class="table-header">
-                                                          {% for cell in email.csv_data[0] %}
-                                                          <th>{{ cell }}</th>
-                                                          {% endfor %}
-                                                      </tr>
-                                                  {% endif %}
-                                              </thead>
-                                              <tbody>
-                                                  {% for row in email.csv_data[1:] %}
-                                                  <tr>
-                                                      {% for cell in row %}
-                                                      <td>{{ cell }}</td>
-                                                      {% endfor %}
-                                                  </tr>
-                                                  {% endfor %}
-                                              </tbody>
-                                          </table>
-                                      </div>
-                                  {% endif %}
-                              {% else %} No attachment {% endif %}
-                          </td>
-                          <td>{{ email.content }}</td>
-                      </tr>
-                      {% endfor %}
-                    </tbody>
-                </table>
+              <h1 class="mt-4 text-center">Biomass Data</h1>
+              <p class="text-center">
+                Here you can see biomass data's from csv files
+              </p>
+              {% for email in emails %}
+              <table class="table table-striped mx-auto">
+                <tbody>
+                  <tr>
+                    <td>
+                      {% if email.filename %} {% if
+                      email.filename.endswith('.csv') %}
+                      <div class="scrollable-box">
+                        <table class="table table-sm">
+                          <thead>
+                            {% if email.csv_data %}
+                            <tr class="table-header">
+                              {% for cell in email.csv_data[0] %}
+                              <th>{{ cell }}</th>
+                              {% endfor %}
+                            </tr>
+                            {% endif %}
+                          </thead>
+                          <tbody>
+                            {% for row in email.csv_data[1:] %}
+                            <tr>
+                              {% for cell in row %}
+                              <td>{{ cell }}</td>
+                              {% endfor %}
+                            </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                      {% endif %} {% else %} No attachment {% endif %}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <table class="table table-striped mx-auto">
+                <tr>
+                  <td style="text-align: center">
+                    <strong>Sample ID:</strong> {{ email.sample_id }}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="text-align: center">
+                    <strong>Serial Number:</strong> {{ email.serial_number }}
+                  </td>
+                  -
+                </tr>
+
+                <tr>
+                  <td style="text-align: center">
+                    <strong>Sample Weight:</strong> {{ email.sample_weight }}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="text-align: center">
+                    <strong>Heat Interval:</strong> {{ email.heat_interval }}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="text-align: center">
+                    <strong>Heat Increase Rate:</strong> {{
+                    email.heat_increase_rate }}
+                  </td>
+                </tr>
+              </table>
+              {% endfor %}
             </div>
           </div>
 
-          <div id="sendEmailContent" style="display: none">
+          <div id="uploadDataContent" style="display: none">
             <h1 class="mt-4">Upload Data</h1>
             <p>Write the descriptive data for the table and upload it</p>
             <form
@@ -404,23 +224,65 @@
               class="row g-3"
             >
               <div class="col-12">
-                <label for="message" class="form-label">Descriptive data</label>
-                <textarea
+                <label for="sample_id" class="form-label">Sample ID</label>
+                <input
                   class="form-control"
-                  id="message"
-                  name="message"
-                  rows="5"
-                  placeholder="Descriptive data"
-                ></textarea>
+                  id="sample_id"
+                  name="sample_id"
+                  placeholder="Sample ID"
+                />
+              </div>
+
+              <div class="col-12">
+                <label for="serial_number" class="form-label"
+                  >Serial Number</label
+                >
+                <input
+                  class="form-control"
+                  id="serial_number"
+                  name="serial_number"
+                  placeholder="Serial Number"
+                />
+              </div>
+              <div class="col-12">
+                <label for="sample_weight" class="form-label"
+                  >Sample Weight</label
+                >
+                <input
+                  class="form-control"
+                  id="sample_weight"
+                  name="sample_weight"
+                  placeholder="Sample Weight"
+                />
+              </div>
+              <div class="col-12">
+                <label for="heat_interval" class="form-label"
+                  >Heat Interval</label
+                >
+                <input
+                  class="form-control"
+                  id="heat_interval"
+                  name="heat_interval"
+                  placeholder="Heat Interval"
+                />
+              </div>
+              <div class="col-12">
+                <label for="heat_increase_rate" class="form-label"
+                  >Heat Increase Rate</label
+                >
+                <input
+                  class="form-control"
+                  id="heat_increase_rate"
+                  name="heat_increase_rate"
+                  placeholder="Heat Increase Rate"
+                />
               </div>
               <div class="col-12">
                 <label for="file" class="form-label">Attach file</label>
                 <input class="form-control" type="file" id="file" name="file" />
               </div>
               <div class="col-12">
-                <button type="submit" class="btn btn-primary">
-                  Upload
-                </button>
+                <button type="submit" class="btn btn-primary">Upload</button>
               </div>
             </form>
           </div>

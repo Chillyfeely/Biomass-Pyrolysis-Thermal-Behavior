@@ -14,15 +14,10 @@ window.addEventListener("DOMContentLoaded", (event) => {
 
   // Store the IDs of the page content divs for different buttons
   const pageContentIds = {
-    homeBtnx: "homeContent",
     homeBtn: "homeContent",
     homeBtn2: "homeContent",
-    dashboardBtn: "dashboardContent",
-    profileBtn: "profileContent",
-    profileBtn2: "profileContent",
-    mailBtn: ["sentEmail", "receivedEmail", "sendEmail"],
-    sendEmailBtn: "sendEmailContent",
-    sentEmailsBtn: "sentEmailsContent",
+    uploadBtn: "uploadDataContent",
+    seeDataBtn: "seeDataContent",
     // ...add more here...
   };
 
@@ -60,7 +55,7 @@ window.addEventListener("DOMContentLoaded", (event) => {
 
   // Show the page content div for 'homeBtnx' when the page loads
   const homeContentDiv = document.body.querySelector(
-    "#" + pageContentIds["homeBtnx"]
+    "#" + pageContentIds["homeBtn"]
   );
   if (homeContentDiv) {
     homeContentDiv.style.display = "block";
