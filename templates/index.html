@@ -151,31 +151,51 @@
                 <tbody>
                   <tr>
                     <td>
-                      {% if email.filename %} {% if
-                      email.filename.endswith('.csv') %}
+                      {% if email.filename and email.filename.endswith('.csv')
+                      %}
                       <div class="scrollable-box">
                         <table class="table table-sm">
                           <thead>
                             {% if email.csv_data %}
                             <tr class="table-header">
-                              {% for cell in email.csv_data[0] %}
-                              <th>{{ cell }}</th>
-                              {% endfor %}
+                              <th>Time</th>
+                              <th>Unsubtracted Weight</th>
+                              <th>Baseline Weight</th>
+                              <th>Program Temperature</th>
+                              <th>Sample Temperature</th>
+                              <th>Approx. Gas Flow</th>
+                              <th>Unsubtracted Delta T</th>
+                              <th>Baseline Delta T</th>
+                              <th>Unsubtracted Heat Flow</th>
+                              <th>Baseline Heat Flow</th>
+                              <th>Heat Flow Calibration</th>
+                              <th>Unsubtracted Microvolt</th>
+                              <th>R25 Diagnostic Temperature</th>
                             </tr>
                             {% endif %}
                           </thead>
                           <tbody>
-                            {% for row in email.csv_data[1:] %}
+                            {% for csv_data in email.csv_data %}
                             <tr>
-                              {% for cell in row %}
-                              <td>{{ cell }}</td>
-                              {% endfor %}
+                              <td>{{ csv_data.time }}</td>
+                              <td>{{ csv_data.unsubtracted_weight }}</td>
+                              <td>{{ csv_data.baseline_weight }}</td>
+                              <td>{{ csv_data.program_temperature }}</td>
+                              <td>{{ csv_data.sample_temperature }}</td>
+                              <td>{{ csv_data.approx_gas_flow }}</td>
+                              <td>{{ csv_data.unsubtracted_delta_t }}</td>
+                              <td>{{ csv_data.baseline_delta_t }}</td>
+                              <td>{{ csv_data.unsubtracted_heat_flow }}</td>
+                              <td>{{ csv_data.baseline_heat_flow }}</td>
+                              <td>{{ csv_data.heat_flow_calibration }}</td>
+                              <td>{{ csv_data.unsubtracted_microvolt }}</td>
+                              <td>{{ csv_data.r25_diagnostic_temperature }}</td>
                             </tr>
                             {% endfor %}
                           </tbody>
                         </table>
                       </div>
-                      {% endif %} {% else %} No attachment {% endif %}
+                      {% else %} No attachment {% endif %}
                     </td>
                   </tr>
                 </tbody>
