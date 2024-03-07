@@ -159,37 +159,44 @@
                             {% if email.csv_data %}
                             <tr class="table-header">
                               <th>Time</th>
-                              <th>Unsubtracted Weight</th>
-                              <th>Baseline Weight</th>
-                              <th>Program Temperature</th>
-                              <th>Sample Temperature</th>
-                              <th>Approx. Gas Flow</th>
-                              <th>Unsubtracted Delta T</th>
-                              <th>Baseline Delta T</th>
-                              <th>Unsubtracted Heat Flow</th>
-                              <th>Baseline Heat Flow</th>
-                              <th>Heat Flow Calibration</th>
-                              <th>Unsubtracted Microvolt</th>
-                              <th>R25 Diagnostic Temperature</th>
+                              <th>Temp oC</th>
+                              <th>Temp K</th>
+                              <th>TG % or wt%</th>
+                              <th>DTG % min-1, mg oC-1</th>
+                              <th>DTG</th>
+                              <th>DSC mW mg-1</th>
+                              <th>DTA microvolt</th>
+                              <th>m mg</th>
+                              <th>mo - m mg</th>
+                              <th>mo - mα mg</th>
+                              <th>α</th>
+                              <th>dα / dT % K-1</th>
+                              <th>ln(β*(dα / dT))</th>
+                              <th>1/T</th>
+                              <th>T²</th>
+                              <th>ln(β/T²)</th>
                             </tr>
                             {% endif %}
                           </thead>
                           <tbody>
                             {% for csv_data in email.csv_data %}
                             <tr>
-                              <td>{{ csv_data.time }}</td>
-                              <td>{{ csv_data.unsubtracted_weight }}</td>
-                              <td>{{ csv_data.baseline_weight }}</td>
-                              <td>{{ csv_data.program_temperature }}</td>
-                              <td>{{ csv_data.sample_temperature }}</td>
-                              <td>{{ csv_data.approx_gas_flow }}</td>
-                              <td>{{ csv_data.unsubtracted_delta_t }}</td>
-                              <td>{{ csv_data.baseline_delta_t }}</td>
-                              <td>{{ csv_data.unsubtracted_heat_flow }}</td>
-                              <td>{{ csv_data.baseline_heat_flow }}</td>
-                              <td>{{ csv_data.heat_flow_calibration }}</td>
-                              <td>{{ csv_data.unsubtracted_microvolt }}</td>
-                              <td>{{ csv_data.r25_diagnostic_temperature }}</td>
+                              <td>{{ csv_data.Time }}</td>
+                              <td>{{ csv_data.Temp_oC }}</td>
+                              <td>{{ csv_data.Temp_K }}</td>
+                              <td>{{ csv_data.TG }}</td>
+                              <td>{{ csv_data.DTG }}</td>
+                              <td>{{ csv_data.DSC }}</td>
+                              <td>{{ csv_data.DTA }}</td>
+                              <td>{{ csv_data.m }}</td>
+                              <td>{{ csv_data.mo_m }}</td>
+                              <td>{{ csv_data.mo_m_alpha }}</td>
+                              <td>{{ csv_data.alpha }}</td>
+                              <td>{{ csv_data.d_alpha_dT }}</td>
+                              <td>{{ csv_data.ln_beta_d_alpha_dT }}</td>
+                              <td>{{ csv_data.one_over_T }}</td>
+                              <td>{{ csv_data.T_squared }}</td>
+                              <td>{{ csv_data.ln_beta_over_T_squared }}</td>
                             </tr>
                             {% endfor %}
                           </tbody>
