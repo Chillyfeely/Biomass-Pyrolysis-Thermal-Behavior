@@ -51,11 +51,6 @@ with app.app_context():
     db.create_all()
 
 
-@app.route("/home")
-def home():
-    return render_template("homeContent.html")
-
-
 @app.route("/seeRawData", methods=["POST", "GET"])
 def seeRawData():
     search = False
@@ -95,9 +90,114 @@ def uploadData():
     return render_template("uploadData.html")
 
 
+@app.route("/printGraph")
+def printGraph():
+    graphJSON2 = printGraph2()
+    graphJSON3 = printGraph3()
+    return render_template(
+        "printGraph.html", graphJSON2=graphJSON2, graphJSON3=graphJSON3
+    )
+
+
+def printGraph2():
+    import plotly
+    import pandas as pd
+    import plotly.express as px
+    import json
+
+    # Define a list of file paths for your CSV files
+    csv_files = [
+        "./Formatted/M1.csv",
+        "./Formatted/M2.csv",
+        "./Formatted/M3.csv",
+        "./Formatted/M4.csv",
+        "./Formatted/M5.csv",
+    ]
+
+    # Define a color list for lines (modify with desired colors)
+    betas = ["10 oC/min", "20 oC/min", "30 oC/min", "40 oC/min", "50 oC/min"]
+
+    # Initialize an empty list
+    all_data = []
+
+    # Read data from each CSV file and append to the list
+    for filename, beta in zip(csv_files, betas):
+        data = pd.read_csv(filename)
+        data["N^2"] = beta
+        all_data.append(data)
+
+    # Concatenate all DataFrames into a single DataFrame (optional)
+    combined_data = pd.concat(all_data, ignore_index=True)
+
+    # Create a scatter plot with markers and customize appearance
+    fig = px.scatter(
+        combined_data, x="Temp oC", y="DSC mW mg-1", color="N^2"
+    )  # Adjust opacity and size as needed
+
+    # Customize the plot
+    fig.update_layout(
+        title="Graph 2",
+        xaxis_title="Temp oC",
+        yaxis_title="DSC (mW mg-1)",
+    )
+
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    return graphJSON
+
+
+def printGraph3():
+    import plotly, json
+    import pandas as pd
+    import plotly.express as px
+
+    # Define a list of file paths for your CSV files
+    csv_files = [
+        "./Formatted/M1.csv",
+        "./Formatted/M2.csv",
+        "./Formatted/M3.csv",
+        "./Formatted/M4.csv",
+        "./Formatted/M5.csv",
+    ]
+
+    # Define a color list for lines (modify with desired colors)
+    betas = ["10 oC/min", "20 oC/min", "30 oC/min", "40 oC/min", "50 oC/min"]
+
+    # Initialize an empty list
+    all_data = []
+
+    # Read data from each CSV file and append to the list
+    for filename, beta in zip(csv_files, betas):
+        data = pd.read_csv(filename)
+        data["N^2"] = beta
+        all_data.append(data)
+
+    # Concatenate all DataFrames into a single DataFrame (optional)
+    combined_data = pd.concat(all_data, ignore_index=True)
+
+    # Create a scatter plot with markers and customize appearance
+    fig = px.scatter(
+        combined_data, x="Temp oC", y="DTA microvolt", color="N^2"
+    )  # Adjust opacity and size as needed
+
+    # Customize the plot
+    fig.update_layout(
+        title="Graph 3",
+        xaxis_title="Temp oC",
+        yaxis_title="DTA microvolt",
+    )
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+    return graphJSON
+
+
+@app.route("/home")
+def home():
+    return render_template("index.html")
+
+
 @app.route("/", methods=["POST", "GET"])
 def index():
-    return render_template("base.html")
+    return render_template("index.html")
 
 
 @app.route("/change_page/<filename>", methods=["POST"])

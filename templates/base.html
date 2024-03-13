@@ -34,11 +34,7 @@
           class="sidebar-heading border-bottom bg-light"
           style="text-align: center"
         >
-          <a
-            id="homeBtn"
-            href="{{ url_for('home') }}"
-            onclick="window.location.href='http://127.0.0.1:5000/'; return false;"
-          >
+          <a id="homeBtn" href="{{ url_for('home') }}">
             <img
               src="{{ url_for('static', filename='images/Logo.svg.png') }}"
               alt="Icon description"
@@ -62,7 +58,7 @@
           <a
             class="list-group-item list-group-item-action list-group-item-light p-3"
             id="uploadBtn"
-            href="#!"
+            href="{{ url_for('printGraph') }}"
             >Merge and Visualize Data</a
           >
           <a
@@ -145,5 +141,13 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Core theme JS-->
     <script src="{{ url_for('static', filename='js/scripts.js')}}"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script type="text/javascript">
+        var graphs = [{{graphJSON2 | safe}}, {{graphJSON3 | safe}}];
+        var ids = ['chart2', 'chart3'];
+        for (var i = 0; i < graphs.length; i++) {
+      Plotly.plot(ids[i], graphs[i], {});
+      }
+    </script>
   </body>
 </html>
