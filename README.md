@@ -1,3 +1,4 @@
 #### PROJECT TITLE: EXCEL VIEWER
 ### CURRENT TASKS:
-- Implementing chart visualization
+- Better URL design
+- Routing between pageContents
