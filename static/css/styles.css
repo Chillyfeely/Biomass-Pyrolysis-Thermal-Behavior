@@ -1806,6 +1806,7 @@ progress {
   word-wrap: break-word;
   max-width: 150px;
 }
+
 .table img {
   height: 150px;
   width: auto;
@@ -8371,7 +8372,8 @@ fieldset:disabled .btn {
 .scrollable-box {
   max-height: 400px;
   overflow-y: scroll;
-  overflow-x: auto;
+  overflow-x: scroll;
+  width: 100%;
 }
 
 /* rtl:end:remove */

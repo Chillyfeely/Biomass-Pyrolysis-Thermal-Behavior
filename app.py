@@ -1,7 +1,9 @@
-from flask import Flask, render_template, url_for, request, redirect, flash
+from flask import Flask, render_template, url_for, request, redirect, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 import os, csv, time
+from flask_paginate import Pagination
+
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///biomass.db"
@@ -16,7 +18,7 @@ class Mail(db.Model):
     serial_number = db.Column(db.String(200), nullable=True)
     sample_weight = db.Column(db.String(200), nullable=True)
     heat_interval = db.Column(db.String(200), nullable=True)
-    heat_increase_rate = db.Column(db.String(200), nullable=True)
+    heat_increase_rate = db.Column(db.Integer, nullable=True)
     filename = db.Column(db.String(300))
 
     def __repr__(self):
@@ -30,10 +32,11 @@ class CsvData(db.Model):
     Temp_oC = db.Column(db.String, nullable=True)
     Temp_K = db.Column(db.String, nullable=True)
     TG = db.Column(db.String, nullable=True)
-    DTG = db.Column(db.String, nullable=True)
+    DTG1 = db.Column(db.String, nullable=True)
+    DTG2 = db.Column(db.String, nullable=True)
     DSC = db.Column(db.String, nullable=True)
     DTA = db.Column(db.String, nullable=True)
-    m = db.Column(db.String, nullable=True)
+    m_mg = db.Column(db.String, nullable=True)
     mo_m = db.Column(db.String, nullable=True)
     mo_m_alpha = db.Column(db.String, nullable=True)
     alpha = db.Column(db.String, nullable=True)
@@ -48,15 +51,62 @@ with app.app_context():
     db.create_all()
 
 
-@app.route("/", methods=["POST", "GET"])
-def index():
+@app.route("/home")
+def home():
+    return render_template("homeContent.html")
+
+
+@app.route("/seeRawData", methods=["POST", "GET"])
+def seeRawData():
+    search = False
+    q = request.args.get("q")
+    if q:
+        search = True
+
     emails = Mail.query.order_by(Mail.id).all()
+
+    paginated_data = []
     for email in emails:
         if email.filename and email.filename.endswith(".csv"):
-            email.csv_data = CsvData.query.filter_by(csv_filename=email.filename).all()
+            page = session.get(
+                f"page_{email.filename}", 1
+            )  # Get the current page number from the session
+            per_page = 1000
+
+            csv_data = CsvData.query.filter_by(csv_filename=email.filename)
+            total = csv_data.count()
+            csv_data = csv_data.offset((page - 1) * per_page).limit(per_page).all()
+            pagination = Pagination(
+                page=page,
+                total=total,
+                per_page=per_page,
+                search=search,
+                record_name="csv_data",
+            )
+            paginated_data.append((email, csv_data, pagination))
         else:
-            email.csv_data = None
-    return render_template("index.html", emails=emails)
+            paginated_data.append((email, None, None))
+
+    return render_template("seeRawData.html", paginated_data=paginated_data)
+
+
+@app.route("/uploadData")
+def uploadData():
+    return render_template("uploadData.html")
+
+
+@app.route("/", methods=["POST", "GET"])
+def index():
+    return render_template("base.html")
+
+
+@app.route("/change_page/<filename>", methods=["POST"])
+def change_page(filename):
+    page = request.form.get(
+        "page", type=int, default=1
+    )  # Get the new page number from the form
+    session[f"page_{filename}"] = page  # Store the new page number in the session
+    return render_template("seeRawData.html")  # Redirect to the 'seeData' page
 
 
 @app.route("/send_email", methods=["POST"])
@@ -72,7 +122,9 @@ def send_email():
     if file:
         file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         file.save(file_path)
-        formatted_data_precision(file_path, 10, f"Formatted/{filename}")
+        formatted_data_precision(
+            file_path, int(heat_increase_rate), f"Formatted/{filename}"
+        )
         file_path2 = f"Formatted/{filename}"
 
         while not os.path.exists(file_path2):
@@ -97,18 +149,19 @@ def send_email():
                 Temp_oC=row[1],
                 Temp_K=row[2],
                 TG=row[3],
-                DTG=row[4],
-                DSC=row[5],
-                DTA=row[6],
-                m=row[7],
-                mo_m=row[8],
-                mo_m_alpha=row[9],
-                alpha=row[10],
-                d_alpha_dT=row[11],
-                ln_beta_d_alpha_dT=row[12],
-                one_over_T=row[13],
-                T_squared=row[14],
-                ln_beta_over_T_squared=row[15],
+                DTG1=row[4],
+                DTG2=row[5],
+                DSC=row[6],
+                DTA=row[7],
+                m_mg=row[8],
+                mo_m=row[9],
+                mo_m_alpha=row[10],
+                alpha=row[11],
+                d_alpha_dT=row[12],
+                ln_beta_d_alpha_dT=row[13],
+                one_over_T=row[14],
+                T_squared=row[15],
+                ln_beta_over_T_squared=row[16],
             )
             db.session.add(csv_data)
 
@@ -116,10 +169,10 @@ def send_email():
         db.session.add(new_message)
         db.session.commit()
         flash("Data stored successfully")
-        return redirect(url_for("index"))
+        return render_template("uploadData.html")
     except:
         flash("There was an issue storing the Data")
-        return redirect(url_for("index"))
+        return render_template("uploadData.html")
 
 
 @app.route("/delete_all", methods=["POST"])
@@ -132,7 +185,7 @@ def delete_all():
     except:
         db.session.rollback()
         flash("There was an issue deleting the csv data's")
-    return redirect(url_for("index"))
+    return render_template("seeRawData.html")
 
 
 # <-Batuhanın Fonksiyonları->
@@ -159,7 +212,7 @@ def calculate_log_beta_t(x, beta):
 def formatted_data(filePath, beta, path):
     import pandas as pd
 
-    df = pd.read_csv(filePath)  # Sadece exceli csv yap kodaki csv okur hale gelir
+    df = pd.read_csv(filePath)
     new_df = pd.DataFrame()
     m0 = df["Unsubtracted Weight"].iloc[0]
     malpha = df["Unsubtracted Weight"].iloc[-1]
@@ -187,11 +240,10 @@ def formatted_data(filePath, beta, path):
     new_df["1/T"] = 1 / new_df["Temp oC"]
     new_df["T²"] = new_df["Temp K"] * new_df["Temp K"]
     new_df["ln(β/T²)"] = new_df["T²"].apply(calculate_log_beta_t, args=(beta,))
-    new_df.to_csv(path, index=False)  # index istiyosan index=True yaparsin
-    return new_df  # buda senin gormen icin geri alip bakabilirsin
+    new_df.to_csv(path, index=False)
+    return new_df
 
 
-# Tek farki var noktadan sonraki 6 satir gozukuyo sadece bunda
 def formatted_data_precision(filePath, beta, path):
     import pandas as pd
 
@@ -215,7 +267,7 @@ def formatted_data_precision(filePath, beta, path):
     new_df["DTA microvolt"] = df["Unsubstracted Microvolt"]
     new_df["m mg"] = df["Unsubtracted Weight"]
     new_df["mo - m mg"] = (m0 - df["Unsubtracted Weight"]).apply(lambda x: round(x, 6))
-    new_df["mo - mα mg"] = malpha - m0
+    new_df["mo - mα mg"] = (m0 - malpha).round(6)
     new_df["α"] = (new_df["mo - m mg"] / new_df["mo - mα mg"]).apply(
         lambda x: round(x, 6)
     )
@@ -235,8 +287,8 @@ def formatted_data_precision(filePath, beta, path):
         .apply(calculate_log_beta_t, args=(beta,))
         .apply(lambda x: round(x, 6))
     )
-    new_df.to_csv(path, index=False)  # index istiyosan index=True yaparsin
-    return new_df  # buda senin gormen icin geri alip bakabilirsin
+    new_df.to_csv(path, index=False, na_rep="null")
+    return new_df
 
 
 if __name__ == "__main__":
