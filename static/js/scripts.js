@@ -11,4 +11,7 @@ window.addEventListener("DOMContentLoaded", (event) => {
       );
     });
   }
+  for (var i = 0; i < graphs.length; i++) {
+    Plotly.plot(ids[i], graphs[i], {});
+  }
 });

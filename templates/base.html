@@ -141,13 +141,11 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Core theme JS-->
     <script src="{{ url_for('static', filename='js/scripts.js')}}"></script>
+    <!-- Plotly Library JS-->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script type="text/javascript">
-        var graphs = [{{graphJSON2 | safe}}, {{graphJSON3 | safe}}];
-        var ids = ['chart2', 'chart3'];
-        for (var i = 0; i < graphs.length; i++) {
-      Plotly.plot(ids[i], graphs[i], {});
-      }
+    <script>
+      var graphs = [{{graphJSON1 | safe}}, {{graphJSON2 | safe}}, {{graphJSON3 | safe}}];
+      var ids = ["chart1", "chart2", "chart3"];
     </script>
   </body>
 </html>
