@@ -1,0 +1,105 @@
+{% extends 'base.html' %} {% block head %} {% endblock %} {% block body %}
+<div id="seeDataContent">
+  <div class="container">
+    <h1 class="mt-4 text-center">Biomass Data</h1>
+    <p class="text-center">
+      Please upload your csv files from "Upload Biomass Data" and you can see it
+      on "Inspect Biomass Data"
+    </p>
+    <p class="text-center">
+      Please double-check that your csv file doesn't contain non-relevant data
+    </p>
+    <div
+      style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100px;
+      "
+    >
+      <form action="{{ url_for('delete_all') }}" method="post">
+        <input type="submit" value="Delete All CSV Data" />
+      </form>
+    </div>
+    {% for email, csv_data, pagination in paginated_data %}
+    <h2>{{ email.subject }}</h2>
+    {% if csv_data %}
+    <div class="d-flex justify-content-between">
+      <span><strong>Sample ID:</strong> {{ email.sample_id }}</span>
+      <span><strong>Serial Number:</strong> {{ email.serial_number }}</span>
+      <span><strong>Sample Weight:</strong> {{ email.sample_weight }}</span>
+      <span><strong>Heat Interval:</strong> {{ email.heat_interval }}</span>
+      <span
+        ><strong>Heat Increase Rate:</strong> {{ email.heat_increase_rate
+        }}</span
+      >
+    </div>
+    <div class="scrollable-box">
+      <table class="table table-striped mx-auto">
+        <thead>
+          <tr class="table-header">
+            <th>Time</th>
+            <th>Temp oC</th>
+            <th>Temp K</th>
+            <th>TG % or wt%</th>
+            <th>DTG % min-1, mg oC-1</th>
+            <th>DTG</th>
+            <th>DSC mW mg-1</th>
+            <th>DTA microvolt</th>
+            <th>m mg</th>
+            <th>mo - m mg</th>
+            <th>mo - mα mg</th>
+            <th>α</th>
+            <th>dα / dT % K-1</th>
+            <th>ln(β*(dα / dT))</th>
+            <th>1/T</th>
+            <th>T²</th>
+            <th>ln(β/T²)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for data in csv_data %}
+          <tr>
+            <td>{{ data.Time }}</td>
+            <td>{{ data.Temp_oC }}</td>
+            <td>{{ data.Temp_K }}</td>
+            <td>{{ data.TG }}</td>
+            <td>{{ data.DTG1 }}</td>
+            <td>{{ data.DTG2 }}</td>
+            <td>{{ data.DSC }}</td>
+            <td>{{ data.DTA }}</td>
+            <td>{{ data.m_mg }}</td>
+            <td>{{ data.mo_m }}</td>
+            <td>{{ data.mo_m_alpha }}</td>
+            <td>{{ data.alpha }}</td>
+            <td>{{ data.d_alpha_dT }}</td>
+            <td>{{ data.ln_beta_d_alpha_dT }}</td>
+            <td>{{ data.one_over_T }}</td>
+            <td>{{ data.T_squared }}</td>
+            <td>{{ data.ln_beta_over_T_squared }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <form
+      method="POST"
+      action="{{ url_for('change_page', filename=email.filename) }}"
+    >
+      <input
+        type="number"
+        name="page"
+        value="{{ pagination.page }}"
+        min="1"
+        max="{{ pagination.total_pages }}"
+      />
+      <input type="submit" value="Go to page" />
+    </form>
+    {{ pagination.info }} {% else %}
+    <p>No CSV data for this email.</p>
+    {% endif %}
+    <hr class="m4" />
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

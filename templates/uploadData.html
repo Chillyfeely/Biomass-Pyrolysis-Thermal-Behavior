@@ -1,0 +1,69 @@
+{% extends 'base.html' %} {% block head %} {% endblock %} {% block body %}
+<div id="uploadDataContent">
+  <h1 class="mt-4">Upload Data</h1>
+  <p>Write the descriptive data for the table and upload it</p>
+  <form
+    method="POST"
+    action="/send_email"
+    enctype="multipart/form-data"
+    class="row g-3"
+  >
+    <div class="col-12">
+      <label for="sample_id" class="form-label">Sample ID</label>
+      <input
+        class="form-control"
+        id="sample_id"
+        name="sample_id"
+        placeholder="Sample ID"
+      />
+    </div>
+
+    <div class="col-12">
+      <label for="serial_number" class="form-label">Serial Number</label>
+      <input
+        class="form-control"
+        id="serial_number"
+        name="serial_number"
+        placeholder="Serial Number"
+      />
+    </div>
+    <div class="col-12">
+      <label for="sample_weight" class="form-label">Sample Weight</label>
+      <input
+        class="form-control"
+        id="sample_weight"
+        name="sample_weight"
+        placeholder="Sample Weight"
+      />
+    </div>
+    <div class="col-12">
+      <label for="heat_interval" class="form-label">Heat Interval</label>
+      <input
+        class="form-control"
+        id="heat_interval"
+        name="heat_interval"
+        placeholder="Heat Interval"
+      />
+    </div>
+    <div class="col-12">
+      <label for="heat_increase_rate" class="form-label"
+        >Heat Increase Rate (Please enter only the heat interval. For example,
+        10.)</label
+      >
+      <input
+        class="form-control"
+        id="heat_increase_rate"
+        name="heat_increase_rate"
+        placeholder="Heat Increase Rate"
+      />
+    </div>
+    <div class="col-12">
+      <label for="file" class="form-label">Attach file</label>
+      <input class="form-control" type="file" id="file" name="file" />
+    </div>
+    <div class="col-12">
+      <button type="submit" class="btn btn-primary">Upload</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
