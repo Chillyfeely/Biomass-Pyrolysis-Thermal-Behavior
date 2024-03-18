@@ -1,0 +1,11 @@
+{% extends 'base.html' %} {% block head %} {% endblock %} {% block body %}
+<h1>In here you can see the result of the AI analysis.</h1>
+<h2>Remember analysis can take several minutes</h2>
+{% for analysis in analyses %}
+<div>
+  <h2>{{ analysis.data_label }}</h2>
+  <img src="{{ analysis.tga_filename }}" alt="TGA Plot" />
+  <img src="{{ analysis.dtg_filename }}" alt="DTG Plot" />
+  <p>LSTM Score: {{ analysis.lstm_score }}</p>
+</div>
+{% endfor %} {% endblock %}

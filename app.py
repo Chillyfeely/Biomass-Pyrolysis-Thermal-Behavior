@@ -1,14 +1,34 @@
-from flask import Flask, render_template, url_for, request, redirect, flash, session
+from flask import (
+    Flask,
+    render_template,
+    url_for,
+    request,
+    redirect,
+    flash,
+    session,
+    jsonify,
+)
 from flask_sqlalchemy import SQLAlchemy
+from flask_session import Session
 from werkzeug.utils import secure_filename
-import os, csv, time
+import os, csv, time, baty
 from flask_paginate import Pagination
 
+# <- Yapay Zeka ->
+import numpy as np
+import pandas as pd
+from tensorflow.keras.models import load_model
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.metrics import r2_score
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///biomass.db"
 app.config["SECRET_KEY"] = os.urandom(24)
 app.config["UPLOAD_FOLDER"] = "Uploaded"
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
 db = SQLAlchemy(app)
 
 
@@ -45,6 +65,14 @@ class CsvData(db.Model):
     one_over_T = db.Column(db.String, nullable=True)
     T_squared = db.Column(db.String, nullable=True)
     ln_beta_over_T_squared = db.Column(db.String, nullable=True)
+
+
+class AiAnalysis(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    data_label = db.Column(db.String(200), nullable=True)
+    tga_filename = db.Column(db.String(300))
+    dtg_filename = db.Column(db.String(300))
+    lstm_score = db.Column(db.Float, nullable=True)
 
 
 with app.app_context():
@@ -92,9 +120,9 @@ def uploadData():
 
 @app.route("/printGraph")
 def printGraph():
-    graphJSON1 = printGraph1()
-    graphJSON2 = printGraph2()
-    graphJSON3 = printGraph3()
+    graphJSON1 = baty.printGraph1()
+    graphJSON2 = baty.printGraph2()
+    graphJSON3 = baty.printGraph3()
     return render_template(
         "printGraph.html",
         graphJSON1=graphJSON1,
@@ -106,6 +134,17 @@ def printGraph():
 @app.route("/home")
 def home():
     return render_template("index.html")
+
+
+@app.route("/requestAiAnalysis", methods=["POST", "GET"])
+def requestAiAnalysis():
+    return render_template("requestAiAnalysis.html")
+
+
+@app.route("/seeAiAnalysis", methods=["POST", "GET"])
+def seeAiAnalysis():
+    analyses = AiAnalysis.query.all()  # Query the database
+    return render_template("seeAiAnalysis.html", analyses=analyses)
 
 
 @app.route("/", methods=["POST", "GET"])
@@ -122,6 +161,113 @@ def change_page(filename):
     return render_template("seeRawData.html")  # Redirect to the 'seeData' page
 
 
+@app.route("/analyze_with_ai", methods=["POST"])
+def analyze_with_ai():
+    data_label = request.form["data_label"]
+    file = request.files["file"]
+    filename = secure_filename(file.filename) if file else None
+
+    if file:
+        file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        file.save(file_path)
+
+    lstm_model = load_model("my_model.keras")
+
+    df = pd.read_excel(file_path)
+
+    val_df = df[df["Isıtma Hızı"] == 10]
+
+    train_df = df
+    dataset = train_df.values.astype("float32")
+    train_df = pd.DataFrame(dataset, columns=train_df.columns, index=train_df.index)
+    train_df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    train_df.dropna(inplace=True)
+    train_df = train_df.replace(np.inf, 0)
+
+    X_train = train_df.iloc[:, :-1]
+    y_train = train_df.iloc[:, -1]
+    X_val = val_df.iloc[:, :-1]
+    y_val = val_df.iloc[:, -1]
+
+    temperature = X_val.iloc[:, -1]
+    predictions = lstm_model.predict(X_val)
+    lstm_score = r2_score(y_val, predictions)
+    session["analysis_status"] = "processing"
+
+    def plot_predictions(real, predicted, t, plot_type):
+        fig, ax = plt.subplots(figsize=(16, 4))
+        if plot_type == 1:
+            r_label = "Actual TG (m)"
+            p_label = "Predicted TG (m)"
+            y_label = "Normalized biomass scale (TG %)"
+            title = "TG predictions of proposed model"
+        else:
+            r_label = "Actual DTG (m)"
+            p_label = "Predicted DTG (m)"
+            y_label = "Normalized biomass scale (DTG %)"
+            title = "DTG predictions of proposed model"
+
+        ax.plot(real, label=r_label)
+        ax.plot(predicted, label=p_label)
+
+        ax.set_title(title)
+        ax.set_xlabel("Temperature (°C)")
+        ax.set_ylabel(y_label)
+        plt.grid(True)
+        ax.legend()
+        return fig, ax
+
+    tga_orig = y_val / y_val.iloc[0] * 100
+    tga_pred = predictions / predictions[0] * 100
+    tga_pred = pd.Series(tga_pred[:, 0])
+
+    temp = X_val["Sıcaklık"]
+
+    tga_orig = tga_orig.replace([np.inf, -np.inf], np.nan)
+    tga_pred = tga_pred.replace([np.inf, -np.inf], np.nan)
+
+    tga_orig = tga_orig.rolling(500).sum()
+    tga_pred = tga_pred.rolling(500).sum()
+
+    tga_orig = tga_orig.bfill()
+    tga_pred = tga_pred.bfill()
+    dtg_orig = tga_orig.diff() / temp.diff()
+    dtg_pred = tga_pred.diff() / temp.diff()
+
+    dtg_orig = dtg_orig.replace([np.inf, -np.inf], np.nan)
+    dtg_pred = dtg_pred.replace([np.inf, -np.inf], np.nan)
+
+    dtg_orig = dtg_orig.bfill()
+    dtg_pred = dtg_pred.bfill()
+
+    dtg_orig = dtg_orig.rolling(500).sum()
+    dtg_pred = dtg_pred.rolling(500).sum()
+
+    dtg_orig = dtg_orig.fillna(0.0)
+    dtg_pred = dtg_pred.fillna(0.0)
+
+    fig, ax = plot_predictions(tga_orig, tga_pred, temp, 1)
+    fig.savefig(f"static/Formatted/images/{filename}_tga_plot.png")
+
+    fig, ax = plot_predictions(dtg_orig, dtg_pred, temp, 0)
+    fig.savefig(f"static/Formatted/images/{filename}_dtg_plot.png")
+
+    new_analysis = AiAnalysis(
+        data_label=data_label,
+        tga_filename=f"static/Formatted/images/{filename}_tga_plot.png",
+        dtg_filename=f"static/Formatted/images/{filename}_dtg_plot.png",
+        lstm_score=lstm_score,
+    )
+    try:
+        db.session.add(new_analysis)
+        db.session.commit()
+        flash("Data stored successfully")
+        return render_template("seeAiAnalysis.html")
+    except:
+        flash("There was an issue storing the Data")
+        return render_template("requestAiAnalysis.html")
+
+
 @app.route("/send_email", methods=["POST"])
 def send_email():
     sample_id = request.form["sample_id"]
@@ -135,7 +281,7 @@ def send_email():
     if file:
         file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         file.save(file_path)
-        formatted_data_precision(
+        baty.formatted_data_precision(
             file_path, int(heat_increase_rate), f"Formatted/{filename}"
         )
         file_path2 = f"Formatted/{filename}"
@@ -193,283 +339,13 @@ def delete_all():
     try:
         db.session.query(Mail).delete()
         db.session.query(CsvData).delete()
+        db.session.query(AiAnalysis).delete()
         db.session.commit()
         flash("All csv data deleted successfully")
     except:
         db.session.rollback()
         flash("There was an issue deleting the csv data's")
     return render_template("seeRawData.html")
-
-
-# <-Batuhanın Fonksiyonları->
-def printGraph1():
-    import pandas as pd
-    import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
-    import json
-    import plotly
-
-    # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-
-    # Add traces
-
-    # Define a list of file paths for your CSV files
-    csv_files = [
-        "./Formatted/M1.csv",
-        "./Formatted/M2.csv",
-        "./Formatted/M3.csv",
-        "./Formatted/M4.csv",
-        "./Formatted/M5.csv",
-    ]
-
-    DTGvalues = [
-        "DTG 10 oC/min",
-        "DTG 20 oC/min",
-        "DTG 30 oC/min",
-        "DTG 40 oC/min",
-        "DTG 50 oC/min",
-    ]
-    TGvalues = [
-        "TG 10 oC/min",
-        "TG 20 oC/min",
-        "TG 30 oC/min",
-        "TG 40 oC/min",
-        "TG 50 oC/min",
-    ]
-
-    # Initialize an empty list
-    # Read data from each CSV file and append to the list
-    for filename, dtgval in zip(csv_files, DTGvalues):
-        data = pd.read_csv(filename)
-        fig.add_trace(
-            go.Scatter(
-                x=data["Temp oC"],
-                y=data["DTG"],
-                mode="lines",
-                name=dtgval,
-                line=dict(shape="spline", smoothing=1.3),
-            ),
-            secondary_y=False,
-        )
-
-    # Read data from each CSV file and append to the list
-    for filename, tgval in zip(csv_files, TGvalues):
-        data = pd.read_csv(filename)
-        fig.add_trace(
-            go.Scatter(
-                x=data["Temp oC"], y=data["TG % or wt%"], mode="lines", name=tgval
-            ),
-            secondary_y=True,
-        )
-
-    fig.update_layout(
-        title_text="TG and DTG curves indicating the percent mass loss of biomass at five different heating rates."
-    )
-
-    # Set x-axis title
-    fig.update_xaxes(title_text="Temp oC")
-
-    # Set y-axes titles
-    fig.update_yaxes(title_text="DTG (% min-1)", secondary_y=False)
-    fig.update_yaxes(title_text="TG % or wt%", secondary_y=True)
-
-    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-    return graphJSON
-
-
-def printGraph2():
-    import plotly
-    import pandas as pd
-    import plotly.express as px
-    import json
-
-    # Define a list of file paths for your CSV files
-    csv_files = [
-        "./Formatted/M1.csv",
-        "./Formatted/M2.csv",
-        "./Formatted/M3.csv",
-        "./Formatted/M4.csv",
-        "./Formatted/M5.csv",
-    ]
-
-    # Define a color list for lines (modify with desired colors)
-    betas = ["10 oC/min", "20 oC/min", "30 oC/min", "40 oC/min", "50 oC/min"]
-
-    # Initialize an empty list
-    all_data = []
-
-    # Read data from each CSV file and append to the list
-    for filename, beta in zip(csv_files, betas):
-        data = pd.read_csv(filename)
-        data["N^2"] = beta
-        all_data.append(data)
-
-    # Concatenate all DataFrames into a single DataFrame (optional)
-    combined_data = pd.concat(all_data, ignore_index=True)
-
-    # Create a scatter plot with markers and customize appearance
-    fig = px.scatter(
-        combined_data, x="Temp oC", y="DSC mW mg-1", color="N^2"
-    )  # Adjust opacity and size as needed
-
-    # Customize the plot
-    fig.update_layout(
-        title="DSC curves indicating heat flow to-and-from biomass at five different heating rates.",
-        xaxis_title="Temp oC",
-        yaxis_title="DSC (mW mg-1)",
-    )
-
-    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-    return graphJSON
-
-
-def printGraph3():
-    import plotly, json
-    import pandas as pd
-    import plotly.express as px
-
-    # Define a list of file paths for your CSV files
-    csv_files = [
-        "./Formatted/M1.csv",
-        "./Formatted/M2.csv",
-        "./Formatted/M3.csv",
-        "./Formatted/M4.csv",
-        "./Formatted/M5.csv",
-    ]
-
-    # Define a color list for lines (modify with desired colors)
-    betas = ["10 oC/min", "20 oC/min", "30 oC/min", "40 oC/min", "50 oC/min"]
-
-    # Initialize an empty list
-    all_data = []
-
-    # Read data from each CSV file and append to the list
-    for filename, beta in zip(csv_files, betas):
-        data = pd.read_csv(filename)
-        data["N^2"] = beta
-        all_data.append(data)
-
-    # Concatenate all DataFrames into a single DataFrame (optional)
-    combined_data = pd.concat(all_data, ignore_index=True)
-
-    # Create a scatter plot with markers and customize appearance
-    fig = px.scatter(
-        combined_data, x="Temp oC", y="DTA microvolt", color="N^2"
-    )  # Adjust opacity and size as needed
-
-    # Customize the plot
-    fig.update_layout(
-        title="DTA curves indicating heat flow to-and-from biomass at five different heating rates.",
-        xaxis_title="Temp oC",
-        yaxis_title="DTA microvolt",
-    )
-    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-
-    return graphJSON
-
-
-def calculate_log_beta_dt(x, beta):
-    import numpy as np
-    import math
-
-    if x > 0:
-        return math.log(x * beta)
-    else:
-        return np.nan
-
-
-def calculate_log_beta_t(x, beta):
-    import numpy as np
-    import math
-
-    if x > 0:
-        return math.log(beta / x)
-    else:
-        return np.nan
-
-
-def formatted_data(filePath, beta, path):
-    import pandas as pd
-
-    df = pd.read_csv(filePath)
-    new_df = pd.DataFrame()
-    m0 = df["Unsubtracted Weight"].iloc[0]
-    malpha = df["Unsubtracted Weight"].iloc[-1]
-    beta = beta
-    new_df["Time"] = df["Time"]
-    new_df["Temp oC"] = df["Sample Temperature"]
-    new_df["Temp K"] = df["Sample Temperature"] + 273.15
-    new_df["TG % or wt%"] = (df["Unsubtracted Weight"] / m0) * 100
-    new_df["DTG % min-1, mg oC-1"] = new_df["TG % or wt%"].diff(1) / new_df[
-        "Time"
-    ].diff(1)
-    new_df["DTG % min-1, mg oC-1"] = new_df["DTG % min-1, mg oC-1"].shift(-1)
-    new_df["DTG"] = "#N/A"
-    new_df["DSC mW mg-1"] = df["Unsubtracted Heat Flow"]
-    new_df["DTA microvolt"] = df["Unsubstracted Microvolt"]
-    new_df["m mg"] = df["Unsubtracted Weight"]
-    new_df["mo - m mg"] = m0 - df["Unsubtracted Weight"]
-    new_df["mo - mα mg"] = malpha - m0
-    new_df["α"] = new_df["mo - m mg"] / new_df["mo - mα mg"]
-    new_df["dα / dT % K-1"] = new_df["α"].diff(1) / -new_df["Temp K"].diff(1)
-    new_df["dα / dT % K-1"] = new_df["dα / dT % K-1"].shift(-1)
-    new_df["ln(β*(dα / dT))"] = new_df["dα / dT % K-1"].apply(
-        calculate_log_beta_dt, args=(beta,)
-    )
-    new_df["1/T"] = 1 / new_df["Temp oC"]
-    new_df["T²"] = new_df["Temp K"] * new_df["Temp K"]
-    new_df["ln(β/T²)"] = new_df["T²"].apply(calculate_log_beta_t, args=(beta,))
-    new_df.to_csv(path, index=False)
-    return new_df
-
-
-def formatted_data_precision(filePath, beta, path):
-    import pandas as pd
-
-    df = pd.read_csv(filePath)
-    new_df = pd.DataFrame()
-    m0 = df["Unsubtracted Weight"].iloc[0]
-    malpha = df["Unsubtracted Weight"].iloc[-1]
-    beta = beta
-    new_df["Time"] = df["Time"]
-    new_df["Temp oC"] = df["Sample Temperature"]
-    new_df["Temp K"] = (df["Sample Temperature"] + 273.15).apply(lambda x: round(x, 6))
-    new_df["TG % or wt%"] = ((df["Unsubtracted Weight"] / m0) * 100).apply(
-        lambda x: round(x, 6)
-    )
-    new_df["DTG % min-1, mg oC-1"] = (
-        new_df["TG % or wt%"].diff(1) / new_df["Time"].diff(1)
-    ).apply(lambda x: round(x, 6))
-    new_df["DTG % min-1, mg oC-1"] = new_df["DTG % min-1, mg oC-1"].shift(-1)
-    new_df["DTG"] = "#N/A"
-    new_df["DTG"] = new_df["DTG % min-1, mg oC-1"].rolling(window=500).mean()
-    new_df["DSC mW mg-1"] = df["Unsubtracted Heat Flow"]
-    new_df["DTA microvolt"] = df["Unsubstracted Microvolt"]
-    new_df["m mg"] = df["Unsubtracted Weight"]
-    new_df["mo - m mg"] = (m0 - df["Unsubtracted Weight"]).apply(lambda x: round(x, 6))
-    new_df["mo - mα mg"] = (m0 - malpha).round(6)
-    new_df["α"] = (new_df["mo - m mg"] / new_df["mo - mα mg"]).apply(
-        lambda x: round(x, 6)
-    )
-    new_df["dα / dT % K-1"] = (new_df["α"].diff(1) / -new_df["Temp K"].diff(1)).apply(
-        lambda x: round(x, 6)
-    )
-    new_df["dα / dT % K-1"] = new_df["dα / dT % K-1"].shift(-1)
-    new_df["ln(β*(dα / dT))"] = (
-        new_df["dα / dT % K-1"]
-        .apply(calculate_log_beta_dt, args=(beta,))
-        .apply(lambda x: round(x, 6))
-    )
-    new_df["1/T"] = (1 / new_df["Temp oC"]).apply(lambda x: round(x, 6))
-    new_df["T²"] = (new_df["Temp K"] * new_df["Temp K"]).apply(lambda x: round(x, 6))
-    new_df["ln(β/T²)"] = (
-        new_df["T²"]
-        .apply(calculate_log_beta_t, args=(beta,))
-        .apply(lambda x: round(x, 6))
-    )
-    new_df.to_csv(path, index=False, na_rep="null")
-    return new_df
 
 
 if __name__ == "__main__":

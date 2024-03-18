@@ -57,15 +57,21 @@
           >
           <a
             class="list-group-item list-group-item-action list-group-item-light p-3"
-            id="uploadBtn"
+            id="mergeAndVisualizeBtn"
             href="{{ url_for('printGraph') }}"
             >Merge and Visualize Data</a
           >
           <a
             class="list-group-item list-group-item-action list-group-item-light p-3"
-            id="uploadBtn"
-            href="#!"
-            >AI Analysis</a
+            id="aiAnalysisBtn"
+            href="{{ url_for('requestAiAnalysis') }}"
+            >Request AI Analysis</a
+          >
+          <a
+            class="list-group-item list-group-item-action list-group-item-light p-3"
+            id="aiAnalysisBtn"
+            href="{{ url_for('seeAiAnalysis') }}"
+            >See AI Analysis</a
           >
         </div>
       </div>
